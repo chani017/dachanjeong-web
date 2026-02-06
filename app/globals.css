@@ -2,7 +2,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #ffffff;
 }
 
 @theme inline {
@@ -14,13 +14,46 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ffffff;
+    --foreground: #ffffff;
   }
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: none;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* 텍스트 스타일 유틸리티 클래스 */
+.text-large {
+  @apply text-[3.2rem] font-bold text-black uppercase leading-[0.9];
+}
+
+.text-medium {
+  @apply text-[2.9rem] font-bold text-black uppercase leading-[0.9];
+}
+
+.text-small {
+  @apply text-[1.4rem] font-extrabold text-black uppercase leading-[0.9];
+}
+
+.text-with-border {
+  @apply border-b-7 border-black pb-2;
 }
