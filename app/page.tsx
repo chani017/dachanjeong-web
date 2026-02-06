@@ -12,11 +12,25 @@ interface Circle {
   vy: number;
   size: number;
   color: string;
+  phase: number; // 물결마다 다른 위상 (살랑거림)
 }
 
 const PC_BREAKPOINT = 768;
 const PADDING_V = 32;
 const PADDING_H = 32;
+
+function hexToRgb(hex: string) {
+  const n = parseInt(hex.slice(1), 16);
+  return { r: (n >> 16) & 0xff, g: (n >> 8) & 0xff, b: n & 0xff };
+}
+function lightenHex(hex: string, amount: number) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgb(${Math.min(255, r + amount)},${Math.min(255, g + amount)},${Math.min(255, b + amount)})`;
+}
+function darkenHex(hex: string, amount: number) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgb(${Math.max(0, r - amount)},${Math.max(0, g - amount)},${Math.max(0, b - amount)})`;
+}
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -33,7 +47,7 @@ export default function Home() {
     const h = window.innerHeight;
     const circles: Circle[] = [];
     
-    const colorPalette = ["#0a66dd", "#ff3300", "#ffca00"];
+    const colorPalette = ["#0066ff", "#ff0022", "#ffc000"];
     const getRandomColor = () =>
       colorPalette[Math.floor(Math.random() * colorPalette.length)];
 
@@ -77,6 +91,7 @@ export default function Home() {
         vy: 0,
         size,
         color: getRandomColor(),
+        phase: Math.random() * Math.PI * 2,
       });
     }
     circlesRef.current = circles;
@@ -106,6 +121,22 @@ export default function Home() {
     resize();
     initCircles();
 
+    // 그레인 텍스처 1회 생성
+    const GRAIN_SIZE = 1024;
+    const grainCanvas = document.createElement("canvas");
+    grainCanvas.width = GRAIN_SIZE;
+    grainCanvas.height = GRAIN_SIZE;
+    const grainCtx = grainCanvas.getContext("2d");
+    if (grainCtx) {
+      const id = grainCtx.getImageData(0, 0, GRAIN_SIZE, GRAIN_SIZE);
+      for (let i = 0; i < id.data.length; i += 4) {
+        const v = 128 + (Math.random() - 0.5) * 60;
+        id.data[i] = id.data[i + 1] = id.data[i + 2] = v;
+        id.data[i + 3] = Math.floor(Math.random() * 24) + 4;
+      }
+      grainCtx.putImageData(id, 0, 0);
+    }
+
     window.addEventListener("resize", resize);
 
     const handlePointer = (x: number, y: number) => {
@@ -126,36 +157,37 @@ export default function Home() {
     window.addEventListener("mouseleave", onPointerLeave);
     window.addEventListener("touchend", onPointerLeave);
 
+    let time = 0;
     const animate = () => {
+      time = performance.now() * 0.001;
       ctx.clearRect(0, 0, logicalW, logicalH);
       const { x: px, y: py } = pointerRef.current;
-      const pushRadius = 600;  // 반경 2배 (기존 300)
-      const pushStrength = 2.5;  // 속도 1/2 (기존 5)
+      const pushRadius = 600;
+      const pushStrength = 2.5;
 
       for (const c of circlesRef.current) {
-        // 포인터와의 거리 계산
         const dx = c.x - px;
         const dy = c.y - py;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // 포인터 쪽으로 끌려감
         if (dist < pushRadius + c.size / 2 && dist > 0) {
           const force = pushStrength * (1 - dist / (pushRadius + c.size / 2));
           c.vx -= (dx / dist) * force;
           c.vy -= (dy / dist) * force;
         } else {
-          // 포인터가 없을 때 천천히 움직임 (속도 1/2)
-          c.vx += (Math.random() - 0.5) * 0.1;
-          c.vy += (Math.random() - 0.5) * 0.1;
+          // 터치 없을 때: 물에 떠 있는 것처럼 살랑살랑 (파동 + 미세 랜덤)
+          const waveX = Math.sin(time * 1.1 + c.phase) * 0.08 + Math.sin(time * 0.7 + c.phase * 1.5) * 0.04;
+          const waveY = Math.cos(time * 0.9 + c.phase * 1.2) * 0.08 + Math.cos(time * 0.6 + c.phase * 0.8) * 0.04;
+          c.vx += waveX + (Math.random() - 0.5) * 0.06;
+          c.vy += waveY + (Math.random() - 0.5) * 0.06;
         }
 
-        // 감속 (마찰)
-        c.vx *= 0.9;
-        c.vy *= 0.9;
+        // 마찰 낮춤 → 더 오래 흔들림 (물 위 느낌)
+        c.vx *= 0.98;
+        c.vy *= 0.98;
 
-        // 미세 속도 제거 (떨림 방지)
-        if (Math.abs(c.vx) < 0.05) c.vx = 0;
-        if (Math.abs(c.vy) < 0.05) c.vy = 0;
+        if (Math.abs(c.vx) < 0.02) c.vx *= 0.5;
+        if (Math.abs(c.vy) < 0.02) c.vy *= 0.5;
       }
 
       // 원끼리 충돌 처리 (여러 번 반복해 안정화)
@@ -199,10 +231,31 @@ export default function Home() {
         if (c.y < r) { c.y = r; c.vy = 0; }
         if (c.y > ch - r) { c.y = ch - r; c.vy = 0; }
 
+        // 엠보싱: 왼쪽 위에서 비치는 광원으로 입체감
+        const lightOffset = r * 0.65;
+        const gx = c.x - lightOffset;
+        const gy = c.y - lightOffset;
+        const grad = ctx.createRadialGradient(gx, gy, 0, c.x, c.y, r);
+        grad.addColorStop(0, lightenHex(c.color, 85));
+        grad.addColorStop(0, c.color);
+        grad.addColorStop(0.85, lightenHex(c.color, 55));
+        grad.addColorStop(1, lightenHex(c.color, 90));
         ctx.beginPath();
         ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
-        ctx.fillStyle = c.color;
+        ctx.fillStyle = grad;
         ctx.fill();
+
+        // 원 안에만 그레인 적용 (multiply 블렌드)
+        if (grainCtx) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.globalCompositeOperation = "multiply";
+          ctx.globalAlpha = 10;
+          ctx.drawImage(grainCanvas, 0, 0, GRAIN_SIZE, GRAIN_SIZE, c.x - r, c.y - r, r * 4, r * 4);
+          ctx.restore();
+        }
       }
 
       animRef.current = requestAnimationFrame(animate);
@@ -249,6 +302,30 @@ export default function Home() {
     };
   }, []);
 
+  // 모바일: 손가락이 닿을 때만 글자 기울임, 떼면 복귀
+  useEffect(() => {
+    const onTouchStart = (e: TouchEvent) => {
+      const el = (e.target as Element).closest(".text-hover-tilt");
+      if (el) el.classList.add("tilt-active");
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      const el = (e.target as Element).closest(".text-hover-tilt");
+      if (el) el.classList.remove("tilt-active");
+    };
+    const onTouchCancel = (e: TouchEvent) => {
+      const el = (e.target as Element).closest(".text-hover-tilt");
+      if (el) el.classList.remove("tilt-active");
+    };
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
+    document.addEventListener("touchcancel", onTouchCancel, { passive: true });
+    return () => {
+      document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("touchcancel", onTouchCancel);
+    };
+  }, []);
+
   // 빠른 두 번 터치 시 새로고침
   useEffect(() => {
     const DOUBLE_TAP_MS = 400;
@@ -275,8 +352,11 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen h-screen bg-white relative overflow-hidden select-none md:h-screen"
-      style={{ fontFamily: "Gabarito, sans-serif" }}
+      className="min-h-screen h-screen relative overflow-hidden select-none md:h-screen"
+      style={{
+        fontFamily: "Gabarito, sans-serif",
+        backgroundColor: "var(--background)",
+      }}
     >
       {/* 배경 원형 그래픽 (Canvas) */}
       <canvas
@@ -306,71 +386,89 @@ export default function Home() {
         >
         <main className="grid grid-cols-2" style={{ gap: "2vw" }}>
           <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
-            <Text size="large" weight="medium">Dachan Jeong</Text>
+            <span className="inline-block">
+              <Text size="large" weight="medium">Dachan Jeong</Text>
+            </span>
           </div>
           <div className="col-span-1 border-b-vw pt-[0.8vw]" style={{ paddingBottom: "2vw" }}>
-            <Text size="small" weight="bold">
-              Based in<br />South Korea
-            </Text>
+            <span className="inline-block">
+              <Text size="small" weight="bold">
+                Based in<br />South Korea
+              </Text>
+            </span>
           </div>
           <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}></div>
           <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
-            <Link href="https://www.instagram.com/chandajeong/">
-            <Text size="large" weight="medium">
-              Insta<br />
-              <span className="inline-flex items-baseline" style={{ gap: "1vw" }}>
-                gram
-                <Image src="/link.svg" alt="link" width={38} height={29} className="inline-block align-baseline w-[7vw] h-auto"/>
-              </span>
-            </Text>
-            </Link>
+            <span className="text-hover-tilt inline-block">
+              <Link href="https://www.instagram.com/chandajeong/">
+                <Text size="large" weight="medium">
+                  Insta<br />
+                  <span className="inline-flex items-baseline" style={{ gap: "1vw" }}>
+                    gram
+                    <Image src="/link.svg" alt="link" width={38} height={29} className="inline-block align-baseline w-[7vw] h-auto"/>
+                  </span>
+                </Text>
+              </Link>
+            </span>
           </div>
           <div className="col-span-2 relative" style={{ paddingBottom: "4vw" }}>
-            <Text size="large" weight="medium" withBorder={false}>
-              A Graphic 
-              <span className="inline-block" style={{ marginLeft: "2vw" }}>
-                <Text size="small" weight="bold">
-                  Typography<br />Editorial
-                </Text>
-              </span> 
+            <span className="inline-block">
+              <Text size="large" weight="medium" withBorder={false}>
+                A Graphic 
+                <span className="inline-block" style={{ marginLeft: "2vw" }}>
+                  <Text size="small" weight="bold">
+                    Typography<br />Editorial
+                  </Text>
+                </span> 
                 <br />design
-            </Text>
+              </Text>
+            </span>
             <div className="absolute bottom-0 left-0 w-[49%] border-b-vw"></div>
             <div className="absolute bottom-0 right-0 w-[49%] border-b-vw"></div>
           </div>
           <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
           </div>
           <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
-            <Text size="large" weight="medium">–Based<br /><span className="opacity-0">-</span><br /></Text>
+            <span className="inline-block">
+              <Text size="large" weight="medium">–Based<br /><span className="opacity-0">-</span><br /></Text>
+            </span>
           </div>
           <div className="col-span-2 relative" style={{ paddingBottom: "4vw" }}>
-            <Text size="large" weight="medium" withBorder={false}>
-              Creative
-              <span className="inline-block" style={{ marginLeft: "2vw" }}>
-                <Text size="small" weight="bold">
-                  Interactive<br />Web
-                </Text>
-              </span> 
+            <span className="inline-block">
+              <Text size="large" weight="medium" withBorder={false}>
+                Creative
+                <span className="inline-block" style={{ marginLeft: "2vw" }}>
+                  <Text size="small" weight="bold">
+                    Interactive<br />Web
+                  </Text>
+                </span> 
                 <br />Coder
-            </Text>
+              </Text>
+            </span>
             <div className="absolute bottom-0 left-0 w-[49%] border-b-vw"></div>
             <div className="absolute bottom-0 right-0 w-[49%] border-b-vw"></div>
           </div>
           <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
-            <Text size="large" weight="medium">Making</Text>
+            <span className="inline-block">
+              <Text size="large" weight="medium">Making</Text>
+            </span>
           </div>
           <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
-            <Text size="large" weight="medium">Visual
-              <span className="inline-block" style={{ marginLeft: "2vw" }}>
-                <Text size="small" weight="bold">
-                  2D<br />3D
-                </Text>
-              </span> 
+            <span className="inline-block">
+              <Text size="large" weight="medium">Visual
+                <span className="inline-block" style={{ marginLeft: "2vw" }}>
+                  <Text size="small" weight="bold">
+                    2D<br />3D
+                  </Text>
+                </span> 
                 Systems
-            </Text>
+              </Text>
+            </span>
           </div>
           <div className="col-span-1">
-            <Text size="large" weight="medium">Through Code.</Text>
+            <span className="inline-block">
+              <Text size="large" weight="medium">Through Code.</Text>
+            </span>
           </div>
         </main>
         </div>
