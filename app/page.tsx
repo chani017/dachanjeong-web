@@ -219,7 +219,7 @@ export default function Home() {
               <Text size="small" weight="bold" className="inline-block ml-2">
                 Typography<br />Editorial
                 </Text> 
-                design
+                <br />design
             </Text>
             <div className="absolute bottom-0 left-0 w-[49%] border-b-6 border-black"></div>
             <div className="absolute bottom-0 right-0 w-[49%] border-b-6 border-black"></div>
@@ -235,7 +235,7 @@ export default function Home() {
               <Text size="small" weight="bold" className="inline-block ml-2">
                 Interactive<br />Web
                 </Text> 
-                Coder
+                <br />Coder
             </Text>
             <div className="absolute bottom-0 left-0 w-[49%] border-b-6 border-black"></div>
             <div className="absolute bottom-0 right-0 w-[49%] border-b-6 border-black"></div>
