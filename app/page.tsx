@@ -307,10 +307,11 @@ export default function Home() {
       clearTimeout(t);
     };
   }, []);
-
-  // 모바일 기기 여부 (마운트 시 1회)
+  
   useEffect(() => {
-    setIsMobile(isMobileDevice());
+    setTimeout(() => {
+      setIsMobile(isMobileDevice());
+    }, 100);
   }, []);
 
   // 세로 모드만: 가로일 때 안내 표시 + 세로일 때 orientation lock 시도
