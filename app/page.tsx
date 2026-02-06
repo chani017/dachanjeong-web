@@ -42,7 +42,7 @@ export default function Home() {
     const MAX_LARGE_COUNT = 2; // 모바일에서만: 최대 크기 원 2개까지
 
     const isPC = w >= 768;
-    const circleCount = isPC ? 36 : 12;
+    const circleCount = isPC ? 36 : 10;
     const isMobile = !isPC;
 
     const sizes: number[] = [];
