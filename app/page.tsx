@@ -259,7 +259,7 @@ export default function Home() {
           <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
             <Text size="large" weight="medium">Dachan Jeong</Text>
           </div>
-          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
+          <div className="col-span-1 border-b-vw pt-[0.8vw]" style={{ paddingBottom: "2vw" }}>
             <Text size="small" weight="bold">
               Based in<br />South Korea
             </Text>
@@ -314,7 +314,7 @@ export default function Home() {
             <Text size="large" weight="medium">Visual
               <span className="inline-block" style={{ marginLeft: "2vw" }}>
                 <Text size="small" weight="bold">
-                  2D,<br />3D
+                  2D<br />3D
                 </Text>
               </span> 
                 Systems
