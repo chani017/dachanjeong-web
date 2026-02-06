@@ -43,7 +43,7 @@ export default function Home() {
     const MAX_LARGE_COUNT = 2; // 모바일에서만: 최대 크기 원 2개까지
 
     const isPC = w >= 768;
-    const circleCount = isPC ? 36 : 10;
+    const circleCount = isPC ? 48 : 10;
     const isMobile = !isPC;
 
     const sizes: number[] = [];
@@ -320,7 +320,7 @@ export default function Home() {
               Insta<br />
               <span className="inline-flex items-baseline" style={{ gap: "1vw" }}>
                 gram
-                <Image src="/link.svg" alt="link" width={38} height={29} className="inline-block align-baseline w-[8vw] h-auto"/>
+                <Image src="/link.svg" alt="link" width={38} height={29} className="inline-block align-baseline w-[7vw] h-auto"/>
               </span>
             </Text>
             </Link>
