@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #ffffff;
+  --border-vw: 1vw;
 }
 
 @theme inline {
@@ -54,6 +55,12 @@ body {
   @apply text-[1.4rem] font-extrabold text-black uppercase leading-[0.9];
 }
 
+/* vw 기반 border */
+.border-b-vw {
+  border-bottom: var(--border-vw) solid black;
+}
+
 .text-with-border {
-  @apply border-b-7 border-black pb-2;
+  @apply pb-2;
+  border-bottom: var(--border-vw) solid black;
 }

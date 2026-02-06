@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Text from "./components/Text";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import Link from "next/link";
 
 interface Circle {
@@ -14,11 +14,18 @@ interface Circle {
   color: string;
 }
 
+const PC_BREAKPOINT = 768;
+const PADDING_V = 32;
+const PADDING_H = 32;
+
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const circlesRef = useRef<Circle[]>([]);
   const pointerRef = useRef({ x: -9999, y: -9999 });
   const animRef = useRef<number>(0);
+  const [scale, setScale] = useState(1);
+  const [isPC, setIsPC] = useState(false);
 
   const initCircles = useCallback(() => {
     const w = window.innerWidth;
@@ -33,11 +40,11 @@ export default function Home() {
     
     // PC면 원의 개수를 4배로 (768px 이상)
     const isPC = w >= 768;
-    const circleCount = isPC ? 48 : 12;
+    const circleCount = isPC ? 36 : 12;
     
     for (let i = 0; i < circleCount; i++) {
-      const size = Math.random() * 150 + 100;
-      const r = size / 2;
+      const size = Math.random() * 200 + 100;
+      const r = size / 4;
       circles.push({
         x: r + Math.random() * (w - size),
         y: r + Math.random() * (h - size),
@@ -56,9 +63,20 @@ export default function Home() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    let logicalW = window.innerWidth;
+    let logicalH = window.innerHeight;
+
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      logicalW = w;
+      logicalH = h;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
     initCircles();
@@ -84,10 +102,10 @@ export default function Home() {
     window.addEventListener("touchend", onPointerLeave);
 
     const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, logicalW, logicalH);
       const { x: px, y: py } = pointerRef.current;
-      const pushRadius = 150;
-      const pushStrength = 5;
+      const pushRadius = 600;  // 반경 2배 (기존 300)
+      const pushStrength = 2.5;  // 속도 1/2 (기존 5)
 
       for (const c of circlesRef.current) {
         // 포인터와의 거리 계산
@@ -101,14 +119,14 @@ export default function Home() {
           c.vx -= (dx / dist) * force;
           c.vy -= (dy / dist) * force;
         } else {
-          // 포인터가 없을 때 천천히 움직임 (작은 랜덤 속도 추가)
-          c.vx += (Math.random() - 0.5) * 0.2;
-          c.vy += (Math.random() - 0.5) * 0.2;
+          // 포인터가 없을 때 천천히 움직임 (속도 1/2)
+          c.vx += (Math.random() - 0.5) * 0.1;
+          c.vy += (Math.random() - 0.5) * 0.1;
         }
 
         // 감속 (마찰)
-        c.vx *= 0.99;
-        c.vy *= 0.99;
+        c.vx *= 0.9;
+        c.vy *= 0.9;
 
         // 미세 속도 제거 (떨림 방지)
         if (Math.abs(c.vx) < 0.05) c.vx = 0;
@@ -142,9 +160,9 @@ export default function Home() {
         }
       }
 
-      // 위치 업데이트, 경계 처리, 그리기
-      const cw = canvas.width;
-      const ch = canvas.height;
+      // 위치 업데이트, 경계 처리, 그리기 (논리 픽셀 기준)
+      const cw = logicalW;
+      const ch = logicalH;
       for (const c of circles) {
         c.x += c.vx;
         c.y += c.vy;
@@ -177,77 +195,128 @@ export default function Home() {
     };
   }, [initCircles]);
 
+  // PC: 콘텐츠를 한 화면에 맞추고 start(왼쪽 위) 정렬
+  useEffect(() => {
+    const measure = () => {
+      const w = window.innerWidth;
+      if (w < PC_BREAKPOINT) {
+        setIsPC(false);
+        setScale(1);
+        return;
+      }
+      setIsPC(true);
+      const el = contentRef.current;
+      if (!el) return;
+      const vh = window.innerHeight;
+      const vw = w;
+      const contentH = el.scrollHeight;
+      const contentW = el.scrollWidth;
+      const scaleY = (vh - PADDING_V) / contentH;
+      const scaleX = (vw - PADDING_H) / contentW;
+      setScale(Math.min(1, scaleY, scaleX));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    const t = setTimeout(measure, 100);
+    return () => {
+      window.removeEventListener("resize", measure);
+      clearTimeout(t);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden h-screen select-none" style={{ fontFamily: "Gabarito, sans-serif" }}>
+    <div
+      className="min-h-screen h-screen bg-white relative overflow-hidden select-none md:h-screen"
+      style={{ fontFamily: "Gabarito, sans-serif" }}
+    >
       {/* 배경 원형 그래픽 (Canvas) */}
       <canvas
         ref={canvasRef}
         className="fixed inset-0 pointer-events-none z-0"
       />
 
-      {/* 메인 컨텐츠 */}
+      {/* 메인 컨텐츠: PC에서는 start 정렬 + 한 화면에 맞춤 */}
       <div
-        className="relative z-50 w-full px-2 py-2 md:max-w-1/4"
+        className="relative z-50 w-full h-full md:overflow-hidden md:flex md:items-start md:justify-start"
         onCopy={(e) => e.preventDefault()}
         onCut={(e) => e.preventDefault()}
         onContextMenu={(e) => e.preventDefault()}
       >
-        <main className="grid grid-cols-2 gap-2">
-          <div className="col-span-1 border-b-6 border-black pb-2">
+        <div
+          ref={contentRef}
+          className="w-full md:absolute md:top-0 md:left-0"
+          style={{
+            padding: "2vw",
+            ...(isPC
+              ? {
+                  transformOrigin: "top left",
+                  transform: `scale(${scale})`,
+                }
+              : {}),
+          }}
+        >
+        <main className="grid grid-cols-2" style={{ gap: "2vw" }}>
+          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
             <Text size="large" weight="medium">Dachan Jeong</Text>
           </div>
-          <div className="col-span-1 border-b-6 border-black pb-2">
+          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
             <Text size="small" weight="bold">
               Based in<br />South Korea
             </Text>
           </div>
-          <div className="col-span-1 border-b-6 border-black pb-2"></div>
-          <div className="col-span-1 border-b-6 border-black pb-2">
+          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}></div>
+          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
             <Link href="https://www.instagram.com/chandajeong/">
             <Text size="large" weight="medium">
               Insta<br />
-              <span className="inline-flex items-baseline gap-1">
+              <span className="inline-flex items-baseline" style={{ gap: "1vw" }}>
                 gram
-                <Image src="/link.svg" alt="link" width={38} height={29} className="inline-block align-baseline" style={{ marginLeft: "0.1em" }} />
+                <Image src="/link.svg" alt="link" width={38} height={29} className="inline-block align-baseline w-[8vw] h-auto"/>
               </span>
             </Text>
             </Link>
           </div>
-          <div className="col-span-2 pb-4 relative">
+          <div className="col-span-2 relative" style={{ paddingBottom: "4vw" }}>
             <Text size="large" weight="medium" withBorder={false}>
               A Graphic 
-              <Text size="small" weight="bold" className="inline-block ml-2">
-                Typography<br />Editorial
-                </Text> 
+              <span className="inline-block" style={{ marginLeft: "2vw" }}>
+                <Text size="small" weight="bold">
+                  Typography<br />Editorial
+                </Text>
+              </span> 
                 <br />design
             </Text>
-            <div className="absolute bottom-0 left-0 w-[49%] border-b-6 border-black"></div>
-            <div className="absolute bottom-0 right-0 w-[49%] border-b-6 border-black"></div>
+            <div className="absolute bottom-0 left-0 w-[49%] border-b-vw"></div>
+            <div className="absolute bottom-0 right-0 w-[49%] border-b-vw"></div>
           </div>
-          <div className="col-span-1 border-b-6 border-black pb-2">
+          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
           </div>
-          <div className="col-span-1 border-b-6 border-black pb-2">
+          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
             <Text size="large" weight="medium">–Based<br /><span className="opacity-0">-</span><br /></Text>
           </div>
-          <div className="col-span-2 pb-4 relative">
+          <div className="col-span-2 relative" style={{ paddingBottom: "4vw" }}>
             <Text size="large" weight="medium" withBorder={false}>
               Creative
-              <Text size="small" weight="bold" className="inline-block ml-2">
-                Interactive<br />Web
-                </Text> 
+              <span className="inline-block" style={{ marginLeft: "2vw" }}>
+                <Text size="small" weight="bold">
+                  Interactive<br />Web
+                </Text>
+              </span> 
                 <br />Coder
             </Text>
-            <div className="absolute bottom-0 left-0 w-[49%] border-b-6 border-black"></div>
-            <div className="absolute bottom-0 right-0 w-[49%] border-b-6 border-black"></div>
+            <div className="absolute bottom-0 left-0 w-[49%] border-b-vw"></div>
+            <div className="absolute bottom-0 right-0 w-[49%] border-b-vw"></div>
           </div>
-          <div className="col-span-1 border-b-6 border-black pb-2">
+          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
             <Text size="large" weight="medium">Making</Text>
           </div>
-          <div className="col-span-1 border-b-6 border-black pb-2">
+          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
             <Text size="large" weight="medium">Visual
-              <Text size="small" weight="bold" className="inline-block ml-2">
-                2D,<br />3D
-                </Text> 
+              <span className="inline-block" style={{ marginLeft: "2vw" }}>
+                <Text size="small" weight="bold">
+                  2D,<br />3D
+                </Text>
+              </span> 
                 Systems
             </Text>
           </div>
@@ -255,6 +324,7 @@ export default function Home() {
             <Text size="large" weight="medium">Through Code.</Text>
           </div>
         </main>
+        </div>
       </div>
     </div>
   );
