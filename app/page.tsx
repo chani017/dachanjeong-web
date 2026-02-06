@@ -43,8 +43,8 @@ export default function Home() {
     const circleCount = isPC ? 36 : 12;
     
     for (let i = 0; i < circleCount; i++) {
-      const size = Math.random() * 200 + 100;
-      const r = size / 4;
+      const size = Math.random() * 200 + 80;
+      const r = size / 2;
       circles.push({
         x: r + Math.random() * (w - size),
         y: r + Math.random() * (h - size),
