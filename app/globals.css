@@ -80,5 +80,5 @@ body {
 }
 /* 모바일: 손가락이 닿아 있을 때만 기울임, 떼면 복귀 */
 .text-hover-tilt.tilt-active {
-  transform: perspective(700px) rotateX(90deg);
+  transform: perspective(700px) rotateX(60deg);
 }

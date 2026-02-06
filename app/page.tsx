@@ -376,6 +376,7 @@ export default function Home() {
           className="w-full md:absolute md:top-0 md:left-0"
           style={{
             padding: "2vw",
+            paddingBottom: "calc(2vw + env(safe-area-inset-bottom, 0px) + 14vw)",
             ...(isPC
               ? {
                   transformOrigin: "top left",
