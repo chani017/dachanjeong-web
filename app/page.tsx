@@ -32,18 +32,42 @@ export default function Home() {
     const h = window.innerHeight;
     const circles: Circle[] = [];
     
-    // 지정된 색상 팔레트에서 랜덤 선택
-    const colorPalette = ["#0a66dd", "#ff3300", "#ffca00" ];
-    const getRandomColor = () => {
-      return colorPalette[Math.floor(Math.random() * colorPalette.length)];
-    };
-    
-    // PC면 원의 개수를 4배로 (768px 이상)
+    const colorPalette = ["#0a66dd", "#ff3300", "#ffca00"];
+    const getRandomColor = () =>
+      colorPalette[Math.floor(Math.random() * colorPalette.length)];
+
+    const MIN_SIZE = 80;
+    const MAX_SIZE = 280;
+    const MAX_SIZE_THRESHOLD = 270;
+    const MAX_LARGE_COUNT = 2; // 모바일에서만: 최대 크기 원 2개까지
+
     const isPC = w >= 768;
     const circleCount = isPC ? 36 : 12;
-    
+    const isMobile = !isPC;
+
+    const sizes: number[] = [];
+    if (isMobile) {
+      // 모바일: 최대 크기 원 2개 제한
+      let largeCount = 0;
+      for (let i = 0; i < circleCount; i++) {
+        let size: number;
+        if (largeCount < MAX_LARGE_COUNT && Math.random() < 0.15) {
+          size = Math.random() * (MAX_SIZE - MAX_SIZE_THRESHOLD) + MAX_SIZE_THRESHOLD;
+          largeCount++;
+        } else {
+          size = Math.random() * (MAX_SIZE_THRESHOLD - MIN_SIZE) + MIN_SIZE;
+        }
+        sizes.push(size);
+      }
+    } else {
+      // PC: 제한 없이 랜덤
+      for (let i = 0; i < circleCount; i++) {
+        sizes.push(Math.random() * (MAX_SIZE - MIN_SIZE) + MIN_SIZE);
+      }
+    }
+
     for (let i = 0; i < circleCount; i++) {
-      const size = Math.random() * 200 + 80;
+      const size = sizes[i];
       const r = size / 2;
       circles.push({
         x: r + Math.random() * (w - size),
