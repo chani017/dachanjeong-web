@@ -57,7 +57,7 @@ export default function Home() {
     const MAX_LARGE_COUNT = 2; // 모바일에서만: 최대 크기 원 2개까지
 
     const isPC = w >= 768;
-    const circleCount = isPC ? 48 : 10;
+    const circleCount = isPC ? 36 : 10;
     const isMobile = !isPC;
 
     const sizes: number[] = [];
@@ -183,8 +183,8 @@ export default function Home() {
         }
 
         // 마찰 낮춤 → 더 오래 흔들림 (물 위 느낌)
-        c.vx *= 0.98;
-        c.vy *= 0.98;
+        c.vx *= 0.9;
+        c.vy *= 0.9;
 
         if (Math.abs(c.vx) < 0.02) c.vx *= 0.5;
         if (Math.abs(c.vy) < 0.02) c.vy *= 0.5;
