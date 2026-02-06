@@ -19,6 +19,16 @@ const PC_BREAKPOINT = 768;
 const PADDING_V = 32;
 const PADDING_H = 32;
 
+/** 해상도 말고 기기 종류로 모바일 여부 판별 (User-Agent + Client Hints) */
+function isMobileDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const uaData = (navigator as Navigator & { userAgentData?: { mobile?: boolean } }).userAgentData;
+  if (uaData?.mobile === true) return true;
+  const mobilePattern = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS|FxiOS/i;
+  return mobilePattern.test(ua);
+}
+
 function hexToRgb(hex: string) {
   const n = parseInt(hex.slice(1), 16);
   return { r: (n >> 16) & 0xff, g: (n >> 8) & 0xff, b: n & 0xff };
@@ -41,6 +51,8 @@ export default function Home() {
   const lastTapRef = useRef({ time: 0, x: 0, y: 0 });
   const [scale, setScale] = useState(1);
   const [isPC, setIsPC] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const initCircles = useCallback(() => {
     const w = window.innerWidth;
@@ -54,11 +66,10 @@ export default function Home() {
     const MIN_SIZE = 80;
     const MAX_SIZE = 280;
     const MAX_SIZE_THRESHOLD = 270;
-    const MAX_LARGE_COUNT = 2; // 모바일에서만: 최대 크기 원 2개까지
+    const MAX_LARGE_COUNT = 2; // 모바일 기기에서만: 최대 크기 원 2개까지
 
-    const isPC = w >= 768;
-    const circleCount = isPC ? 36 : 10;
-    const isMobile = !isPC;
+    const isMobile = isMobileDevice();
+    const circleCount = isMobile ? 10 : 36;
 
     const sizes: number[] = [];
     if (isMobile) {
@@ -273,16 +284,11 @@ export default function Home() {
     };
   }, [initCircles]);
 
-  // PC: 콘텐츠를 한 화면에 맞추고 start(왼쪽 위) 정렬
+  // 창/해상도/비율 관계없이 글자·border 레이어가 잘리면 가로세로비 유지한 채 스케일 축소로 전부 들어오도록
   useEffect(() => {
     const measure = () => {
       const w = window.innerWidth;
-      if (w < PC_BREAKPOINT) {
-        setIsPC(false);
-        setScale(1);
-        return;
-      }
-      setIsPC(true);
+      setIsPC(w >= PC_BREAKPOINT);
       const el = contentRef.current;
       if (!el) return;
       const vh = window.innerHeight;
@@ -295,10 +301,40 @@ export default function Home() {
     };
     measure();
     window.addEventListener("resize", measure);
-    const t = setTimeout(measure, 100);
+    const t = setTimeout(measure, 150);
     return () => {
       window.removeEventListener("resize", measure);
       clearTimeout(t);
+    };
+  }, []);
+
+  // 모바일 기기 여부 (마운트 시 1회)
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+  }, []);
+
+  // 세로 모드만: 가로일 때 안내 표시 + 세로일 때 orientation lock 시도
+  useEffect(() => {
+    const check = () => setIsLandscape(window.innerWidth > window.innerHeight);
+    const lockPortrait = async () => {
+      try {
+        const o = (window as Window & { screen?: { orientation?: { lock?: (v: string) => Promise<void> } } }).screen?.orientation;
+        if (o?.lock) await o.lock("portrait");
+      } catch {
+        /* 미지원 시 무시 */
+      }
+    };
+    const onOrientationChange = () => {
+      check();
+      if (window.innerWidth <= window.innerHeight) lockPortrait();
+    };
+    check();
+    if (typeof window !== "undefined" && window.innerWidth <= window.innerHeight) lockPortrait();
+    window.addEventListener("resize", check);
+    window.addEventListener("orientationchange", onOrientationChange);
+    return () => {
+      window.removeEventListener("resize", check);
+      window.removeEventListener("orientationchange", onOrientationChange);
     };
   }, []);
 
@@ -358,13 +394,21 @@ export default function Home() {
         backgroundColor: "var(--background)",
       }}
     >
-      {/* 배경 원형 그래픽 (Canvas) */}
+      {isLandscape && isMobile && (
+        <div
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white px-6"
+          style={{ fontFamily: "Gabarito, sans-serif" }}
+        >
+          <p className="text-2xl font-bold text-black text-center">
+            Turn your device to portrait mode.
+          </p>
+        </div>
+      )}
+
       <canvas
         ref={canvasRef}
         className="fixed inset-0 pointer-events-none z-0"
       />
-
-      {/* 메인 컨텐츠: PC에서는 start 정렬 + 한 화면에 맞춤 */}
       <div
         className="relative z-50 w-full h-full md:overflow-hidden md:flex md:items-start md:justify-start"
         onCopy={(e) => e.preventDefault()}
@@ -373,15 +417,11 @@ export default function Home() {
       >
         <div
           ref={contentRef}
-          className="w-full md:absolute md:top-0 md:left-0"
+          className={`w-full ${scale < 1 ? "absolute top-0 left-0" : ""}`}
           style={{
             padding: "2vw",
-            paddingBottom: "calc(2vw + env(safe-area-inset-bottom, 0px) + 14vw)",
-            ...(isPC
-              ? {
-                  transformOrigin: "top left",
-                  transform: `scale(${scale})`,
-                }
+            ...(scale < 0.9
+              ? { transformOrigin: "top left", transform: `scale(${scale})` }
               : {}),
           }}
         >
