@@ -4,6 +4,7 @@ import Image from "next/image";
 import Text from "./components/Text";
 import { useEffect, useRef, useCallback, useState } from "react";
 import Link from "next/link";
+import useSound from "use-sound";
 
 interface Circle {
   x: number;
@@ -49,10 +50,34 @@ export default function Home() {
   const pointerRef = useRef({ x: -9999, y: -9999 });
   const animRef = useRef<number>(0);
   const lastTapRef = useRef({ time: 0, x: 0, y: 0 });
+  const lastTouchForPopRef = useRef(0);
   const [scale, setScale] = useState(1);
   const [isPC, setIsPC] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const [playPop1] = useSound("/sounds/pop-1.mp3", { volume: 0.6 });
+  const [playPop2] = useSound("/sounds/pop-2.mp3", { volume: 0.6 });
+  const [playPop3] = useSound("/sounds/pop-3.mp3", { volume: 0.6 });
+  const [playPop4] = useSound("/sounds/pop-4.mp3", { volume: 0.6 });
+  const [playPop5] = useSound("/sounds/pop-5.mp3", { volume: 0.6 });
+  const [playPop6] = useSound("/sounds/pop-6.mp3", { volume: 0.6 });
+
+  const playRandomPop = useCallback(() => {
+    const playFns = [playPop1, playPop2, playPop3, playPop4, playPop5, playPop6];
+    const i = Math.floor(Math.random() * 6);
+    playFns[i]();
+  }, [playPop1, playPop2, playPop3, playPop4, playPop5, playPop6]);
+
+  const onTouchStartPop = useCallback(() => {
+    lastTouchForPopRef.current = Date.now();
+    playRandomPop();
+  }, [playRandomPop]);
+
+  const onClickPop = useCallback(() => {
+    if (Date.now() - lastTouchForPopRef.current < 400) return;
+    playRandomPop();
+  }, [playRandomPop]);
 
   const initCircles = useCallback(() => {
     const w = window.innerWidth;
@@ -412,6 +437,8 @@ export default function Home() {
       />
       <div
         className="relative z-50 w-full h-full md:overflow-hidden md:flex md:items-start md:justify-start"
+        onTouchStart={onTouchStartPop}
+        onClick={onClickPop}
         onCopy={(e) => e.preventDefault()}
         onCut={(e) => e.preventDefault()}
         onContextMenu={(e) => e.preventDefault()}
