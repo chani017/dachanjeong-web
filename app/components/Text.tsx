@@ -31,8 +31,8 @@ export default function Text({
   const weightClass = weightClasses[weight];
 
   return (
-    <span className={`${baseClasses} ${sizeClass} ${weightClass} ${className}`}>
+    <p className={`${baseClasses} ${sizeClass} ${weightClass} ${className}`}>
       {children}
-    </span>
+    </p>
   );
 }

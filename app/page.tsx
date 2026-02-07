@@ -1,15 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import Text from "./components/Text";
+import BgCircles from "./components/BgCircles";
 import { useRef } from "react";
 import Link from "next/link";
-import Text from "@/app/components/Text";
-import BgCircles from "@/app/components/BgCircles";
-import { useContentScale } from "@/app/hooks/useContentScale";
-import { useDeviceInfo } from "@/app/hooks/useDeviceInfo";
-import { useOrientationLock } from "@/app/hooks/useOrientationLock";
-import { useDoubleTapRefresh } from "@/app/hooks/useDoubleTapRefresh";
-import { useTextTiltTouch } from "@/app/hooks/useTextTiltTouch";
+import { useContentScale } from "./hooks/useContentScale";
+import { useDeviceInfo } from "./hooks/useDeviceInfo";
+import { useOrientationLock } from "./hooks/useOrientationLock";
+import { useDoubleTapRefresh } from "./hooks/useDoubleTapRefresh";
+import { useTextTiltTouch } from "./hooks/useTextTiltTouch";
 
 
 export default function Home() {
@@ -34,9 +34,9 @@ export default function Home() {
           className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white px-6"
           style={{ fontFamily: "Gabarito, sans-serif" }}
         >
-          <p className="text-2xl font-bold text-black text-center">
+          <span className="text-2xl font-bold text-black text-center">
             Turn your device to portrait mode.
-          </p>
+          </span>
         </aside>
       )}
 
