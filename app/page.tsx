@@ -1,15 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import Text from "./components/Text";
-import BgCircles from "./components/BgCircles";
 import { useRef } from "react";
 import Link from "next/link";
-import { useContentScale } from "./hooks/useContentScale";
-import { useDeviceInfo } from "./hooks/useDeviceInfo";
-import { useOrientationLock } from "./hooks/useOrientationLock";
-import { useDoubleTapRefresh } from "./hooks/useDoubleTapRefresh";
-import { useTextTiltTouch } from "./hooks/useTextTiltTouch";
+import Text from "@/app/components/Text";
+import BgCircles from "@/app/components/BgCircles";
+import { useContentScale } from "@/app/hooks/useContentScale";
+import { useDeviceInfo } from "@/app/hooks/useDeviceInfo";
+import { useOrientationLock } from "@/app/hooks/useOrientationLock";
+import { useDoubleTapRefresh } from "@/app/hooks/useDoubleTapRefresh";
+import { useTextTiltTouch } from "@/app/hooks/useTextTiltTouch";
 
 
 export default function Home() {
