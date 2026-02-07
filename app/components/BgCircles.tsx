@@ -111,7 +111,7 @@ export default function BackgroundCircles() {
 
     let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = window.devicePixelRatio || 2;
       const w = window.innerWidth;
       const h = window.innerHeight;
       logicalW = w;

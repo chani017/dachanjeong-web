@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Text from "./components/Text";
 import BgCircles from "./components/BgCircles";
 import { useRef } from "react";
@@ -34,7 +33,7 @@ export default function Home() {
           className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white px-6"
           style={{ fontFamily: "Gabarito, sans-serif" }}
         >
-          <span className="text-2xl font-bold text-black text-center">
+          <span className="text-2xl font-bold text-[var(--text-border-color)] text-center">
             Turn your device to portrait mode.
           </span>
         </aside>
@@ -92,7 +91,12 @@ export default function Home() {
                   Insta<br />
                   <span className="inline-flex items-baseline" style={{ gap: "1vw" }}>
                     gram
-                    <Image src="/link.svg" alt="link" width={38} height={29} className="inline-block align-baseline w-[7vw] h-auto"/>
+                    <span className="inline-block w-[7vw] h-auto text-[var(--text-border-color)] [&>svg]:w-full [&>svg]:h-auto" aria-hidden>
+                      <svg viewBox="0 0 37 37" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline-block" style={{ paddingBottom: "2vw" }}>
+                        <path d="M0 36.8789H33.8789V19.9395H27.8789V30.8789H6V9H16.9395V3H0V36.8789Z" fill="currentColor"/>
+                        <path d="M36.858 0V16.9004H30.858V10.2627L14.1842 26.9365L9.94202 22.6943L26.6364 6H19.9586V0H36.858Z" fill="currentColor"/>
+                      </svg>
+                    </span>
                   </span>
                 </Text>
               </Link>

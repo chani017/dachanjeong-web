@@ -26,7 +26,7 @@ export default function Text({
   weight = "bold",
   className = "",
 }: TextProps) {
-  const baseClasses = "text-black uppercase leading-[0.9]";
+  const baseClasses = "text-[var(--text-border-color)] uppercase leading-[0.9]";
   const sizeClass = sizeClasses[size];
   const weightClass = weightClasses[weight];
 

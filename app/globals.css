@@ -2,8 +2,9 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #ffffff;  
+  --foreground: #ffffff;
   --border-vw: 1vw;
+  --text-border-color: #1a1917;
 }
 
 @theme inline {
@@ -42,9 +43,8 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
-/* vw 기반 border */
 .border-b-vw {
-  border-bottom: var(--border-vw) solid black;
+  border-bottom: var(--border-vw) solid var(--text-border-color);
 }
 
 /* 글자만 호버/터치 시 x축 입체 기울임 (border는 고정) */
