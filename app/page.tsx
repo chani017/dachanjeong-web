@@ -70,15 +70,21 @@ export default function Home() {
                 <Text size="large" weight="medium">Dachan Jeong</Text>
               </span>
             </div>
-            <div className="col-span-1 border-b-vw pt-[0.8vw]" style={{ paddingBottom: "2vw" }}>
-              <span className="inline-block">
+            <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
+              <span className="inline-block pt-[0.4vw]">
                 <Text size="small" weight="bold">
                   Based in<br />Seoul
                 </Text>
               </span>
             </div>
           </section>
-          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }} />
+          <div className="col-span-1 border-b-vw flex justify-end" style={{ paddingBottom: "2vw" }}>
+            <span className="text-end pt-[0.4vw]">
+              <Text size="small" weight="bold">
+                hello.dachan<br />@gmail.com
+              </Text>
+            </span> 
+          </div>
           <nav className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
             <span className="text-hover-tilt inline-block">
               <Link href="https://www.instagram.com/chandajeong/">
@@ -107,13 +113,7 @@ export default function Home() {
             <div className="absolute bottom-0 left-0 w-[49%] border-b-vw" />
             <div className="absolute bottom-0 right-0 w-[49%] border-b-vw" />
           </section>
-          <div className="col-span-1 border-b-vw flex items-end justify-end" style={{ paddingBottom: "2vw" }}>
-            <span className="text-end">
-              <Text size="small" weight="bold">
-                hello.dachan<br />@gmail.com
-              </Text>
-            </span> 
-          </div>
+          <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }} />
           <div className="col-span-1 border-b-vw" style={{ paddingBottom: "2vw" }}>
             <span className="inline-block">
               <Text size="large" weight="medium">–Based<br /><span className="opacity-0">-</span><br /></Text>
