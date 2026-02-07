@@ -42,43 +42,7 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
-/* 텍스트 스타일 유틸리티 클래스 */
-.text-large {
-  @apply text-[3.2rem] font-bold text-black uppercase leading-[0.9];
-}
-
-.text-medium {
-  @apply text-[2.9rem] font-bold text-black uppercase leading-[0.9];
-}
-
-.text-small {
-  @apply text-[1.4rem] font-extrabold text-black uppercase leading-[0.9];
-}
-
 /* vw 기반 border */
 .border-b-vw {
   border-bottom: var(--border-vw) solid black;
-}
-
-.text-with-border {
-  @apply pb-2;
-  border-bottom: var(--border-vw) solid black;
-}
-
-/* 글자만 호버 시 x축 입체 기울임 (border는 고정) */
-.text-hover-tilt {
-  display: inline-block;
-  transition: transform 0.28s ease;
-  transform-origin: center center;
-  transform-style: preserve-3d;
-}
-/* PC: 호버 시 기울임 */
-@media (hover: hover) {
-  .text-hover-tilt:hover {
-    transform: perspective(700px) rotateX(20deg);
-  }
-}
-/* 모바일: 손가락이 닿아 있을 때만 기울임, 떼면 복귀 */
-.text-hover-tilt.tilt-active {
-  transform: perspective(700px) rotateX(60deg);
 }

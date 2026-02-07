@@ -7,8 +7,14 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "dachanjeong.xyz",
     start_url: "/",
     display: "standalone",
-    orientation: "portrait", // 세로 모드만 허용
-    theme_color: "#ffffff",
     background_color: "#ffffff",
+    theme_color: "#ffffff",
+    icons: [
+      {
+        src: "/favicon.ico",
+        sizes: "any",
+        type: "image/x-icon",
+      },
+    ],
   };
 }
