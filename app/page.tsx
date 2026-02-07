@@ -11,6 +11,7 @@ import { useOrientationLock } from "./hooks/useOrientationLock";
 import { useDoubleTapRefresh } from "./hooks/useDoubleTapRefresh";
 import { useTextTiltTouch } from "./hooks/useTextTiltTouch";
 
+
 export default function Home() {
   const contentRef = useRef<HTMLDivElement>(null);
   const scale = useContentScale(contentRef);
