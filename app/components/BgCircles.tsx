@@ -31,6 +31,18 @@ function lightenHex(hex: string, amount: number) {
   return `rgb(${Math.min(255, r + amount)},${Math.min(255, g + amount)},${Math.min(255, b + amount)})`;
 }
 
+const COLOR_PALETTE = ["#0066ff", "#ff0022", "#ffc000"] as const;
+const COLOR_STOPS_CACHE: Record<string, Record<number, string>> = {};
+function getColorStop(hex: string, amount: number): string {
+  if (!COLOR_STOPS_CACHE[hex]) {
+    COLOR_STOPS_CACHE[hex] = {};
+  }
+  if (!COLOR_STOPS_CACHE[hex][amount]) {
+    COLOR_STOPS_CACHE[hex][amount] = lightenHex(hex, amount);
+  }
+  return COLOR_STOPS_CACHE[hex][amount];
+}
+
 export default function BackgroundCircles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const circlesRef = useRef<Circle[]>([]);
@@ -42,9 +54,8 @@ export default function BackgroundCircles() {
     const h = window.innerHeight;
     const circles: Circle[] = [];
 
-    const colorPalette = ["#0066ff", "#ff0022", "#ffc000"];
     const getRandomColor = () =>
-      colorPalette[Math.floor(Math.random() * colorPalette.length)];
+      COLOR_PALETTE[Math.floor(Math.random() * COLOR_PALETTE.length)];
 
     const MIN_SIZE = 80;
     const MAX_SIZE = 280;
@@ -52,7 +63,7 @@ export default function BackgroundCircles() {
     const MAX_LARGE_COUNT = 2;
 
     const mobile = isMobileDevice();
-    const circleCount = mobile ? 10 : 28;
+    const circleCount = mobile ? 10 : 36;
 
     const sizes: number[] = [];
     if (mobile) {
@@ -98,6 +109,7 @@ export default function BackgroundCircles() {
     let logicalW = window.innerWidth;
     let logicalH = window.innerHeight;
 
+    let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
     const resize = () => {
       const dpr = window.devicePixelRatio || 1;
       const w = window.innerWidth;
@@ -110,9 +122,18 @@ export default function BackgroundCircles() {
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
+    const debouncedResize = () => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        resizeTimeout = null;
+        resize();
+        initCircles();
+      }, 150);
+    };
     resize();
     initCircles();
 
+    const isMobile = isMobileDevice();
     const GRAIN_SIZE = 1024;
     const grainCanvas = document.createElement("canvas");
     grainCanvas.width = GRAIN_SIZE;
@@ -128,7 +149,7 @@ export default function BackgroundCircles() {
       grainCtx.putImageData(id, 0, 0);
     }
 
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", debouncedResize);
 
     const handlePointer = (x: number, y: number) => {
       pointerRef.current = { x, y };
@@ -220,22 +241,22 @@ export default function BackgroundCircles() {
         const gx = c.x - lightOffset;
         const gy = c.y - lightOffset;
         const grad = ctx.createRadialGradient(gx, gy, 0, c.x, c.y, r);
-        grad.addColorStop(0, lightenHex(c.color, 85));
+        grad.addColorStop(0, getColorStop(c.color, 85));
         grad.addColorStop(0, c.color);
-        grad.addColorStop(0.85, lightenHex(c.color, 55));
-        grad.addColorStop(1, lightenHex(c.color, 90));
+        grad.addColorStop(0.85, getColorStop(c.color, 55));
+        grad.addColorStop(1, getColorStop(c.color, 90));
         ctx.beginPath();
         ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
         ctx.fillStyle = grad;
         ctx.fill();
 
-        if (grainCtx) {
+        if (grainCtx && !isMobile) {
           ctx.save();
           ctx.beginPath();
           ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
           ctx.clip();
           ctx.globalCompositeOperation = "multiply";
-          ctx.globalAlpha = 10;
+          ctx.globalAlpha = 0.1;
           ctx.drawImage(grainCanvas, 0, 0, GRAIN_SIZE, GRAIN_SIZE, c.x - r, c.y - r, r * 4, r * 4);
           ctx.restore();
         }
@@ -248,7 +269,8 @@ export default function BackgroundCircles() {
 
     return () => {
       cancelAnimationFrame(animRef.current);
-      window.removeEventListener("resize", resize);
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      window.removeEventListener("resize", debouncedResize);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("mouseleave", onPointerLeave);
