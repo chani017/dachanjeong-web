@@ -10,7 +10,7 @@ interface TextProps {
 
 const sizeClasses = {
   large: "text-[11.2vw]",
-  small: "text-[4.7vw]",
+  small: "text-[4.5vw] leading-[1]",
 };
 
 const weightClasses: Record<"medium" | "semibold" | "bold" | "extrabold", string> = {
