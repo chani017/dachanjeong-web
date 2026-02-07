@@ -52,7 +52,7 @@ export default function BackgroundCircles() {
     const MAX_LARGE_COUNT = 2;
 
     const mobile = isMobileDevice();
-    const circleCount = mobile ? 10 : 36;
+    const circleCount = mobile ? 10 : 28;
 
     const sizes: number[] = [];
     if (mobile) {
