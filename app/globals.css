@@ -46,3 +46,19 @@ body {
 .border-b-vw {
   border-bottom: var(--border-vw) solid black;
 }
+
+/* 글자만 호버/터치 시 x축 입체 기울임 (border는 고정) */
+.text-hover-tilt {
+  display: inline-block;
+  transition: transform 0.28s ease;
+  transform-origin: center center;
+  transform-style: preserve-3d;
+}
+@media (hover: hover) {
+  .text-hover-tilt:hover {
+    transform: perspective(700px) rotateX(20deg);
+  }
+}
+.text-hover-tilt.tilt-active {
+  transform: perspective(700px) rotateX(60deg);
+}
