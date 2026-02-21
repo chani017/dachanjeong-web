@@ -49,6 +49,7 @@ export default function RootLayout({
         style={{ fontFamily: "Gabarito, sans-serif" }}
       >
         {children}
+        <Analytics />
       </body>
       <Analytics />
     </html>
