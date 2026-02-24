@@ -15,9 +15,12 @@ interface Circle {
 function isMobileDevice(): boolean {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  const uaData = (navigator as Navigator & { userAgentData?: { mobile?: boolean } }).userAgentData;
+  const uaData = (
+    navigator as Navigator & { userAgentData?: { mobile?: boolean } }
+  ).userAgentData;
   if (uaData?.mobile === true) return true;
-  const mobilePattern = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS|FxiOS/i;
+  const mobilePattern =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS|FxiOS/i;
   return mobilePattern.test(ua);
 }
 
@@ -63,7 +66,7 @@ export default function BackgroundCircles() {
     const MAX_LARGE_COUNT = 2;
 
     const mobile = isMobileDevice();
-    const circleCount = mobile ? 10 : 36;
+    const circleCount = mobile ? 8 : 36;
 
     const sizes: number[] = [];
     if (mobile) {
@@ -71,7 +74,9 @@ export default function BackgroundCircles() {
       for (let i = 0; i < circleCount; i++) {
         let size: number;
         if (largeCount < MAX_LARGE_COUNT && Math.random() < 0.15) {
-          size = Math.random() * (MAX_SIZE - MAX_SIZE_THRESHOLD) + MAX_SIZE_THRESHOLD;
+          size =
+            Math.random() * (MAX_SIZE - MAX_SIZE_THRESHOLD) +
+            MAX_SIZE_THRESHOLD;
           largeCount++;
         } else {
           size = Math.random() * (MAX_SIZE_THRESHOLD - MIN_SIZE) + MIN_SIZE;
@@ -187,8 +192,12 @@ export default function BackgroundCircles() {
           c.vx -= (dx / dist) * force;
           c.vy -= (dy / dist) * force;
         } else {
-          const waveX = Math.sin(time * 1.1 + c.phase) * 0.08 + Math.sin(time * 0.7 + c.phase * 1.5) * 0.04;
-          const waveY = Math.cos(time * 0.9 + c.phase * 1.2) * 0.08 + Math.cos(time * 0.6 + c.phase * 0.8) * 0.04;
+          const waveX =
+            Math.sin(time * 1.1 + c.phase) * 0.08 +
+            Math.sin(time * 0.7 + c.phase * 1.5) * 0.04;
+          const waveY =
+            Math.cos(time * 0.9 + c.phase * 1.2) * 0.08 +
+            Math.cos(time * 0.6 + c.phase * 0.8) * 0.04;
           c.vx += waveX + (Math.random() - 0.5) * 0.06;
           c.vy += waveY + (Math.random() - 0.5) * 0.06;
         }
@@ -232,10 +241,22 @@ export default function BackgroundCircles() {
         c.y += c.vy;
 
         const r = c.size / 2;
-        if (c.x < r) { c.x = r; c.vx = 0; }
-        if (c.x > cw - r) { c.x = cw - r; c.vx = 0; }
-        if (c.y < r) { c.y = r; c.vy = 0; }
-        if (c.y > ch - r) { c.y = ch - r; c.vy = 0; }
+        if (c.x < r) {
+          c.x = r;
+          c.vx = 0;
+        }
+        if (c.x > cw - r) {
+          c.x = cw - r;
+          c.vx = 0;
+        }
+        if (c.y < r) {
+          c.y = r;
+          c.vy = 0;
+        }
+        if (c.y > ch - r) {
+          c.y = ch - r;
+          c.vy = 0;
+        }
 
         const lightOffset = r * 0.65;
         const gx = c.x - lightOffset;
@@ -257,7 +278,17 @@ export default function BackgroundCircles() {
           ctx.clip();
           ctx.globalCompositeOperation = "multiply";
           ctx.globalAlpha = 0.1;
-          ctx.drawImage(grainCanvas, 0, 0, GRAIN_SIZE, GRAIN_SIZE, c.x - r, c.y - r, r * 4, r * 4);
+          ctx.drawImage(
+            grainCanvas,
+            0,
+            0,
+            GRAIN_SIZE,
+            GRAIN_SIZE,
+            c.x - r,
+            c.y - r,
+            r * 4,
+            r * 4,
+          );
           ctx.restore();
         }
       }
@@ -279,9 +310,6 @@ export default function BackgroundCircles() {
   }, [initCircles]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
-    />
+    <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />
   );
 }
