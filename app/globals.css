@@ -2,7 +2,8 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #ffffff;  
+  --foreground: #ffffff;
+  --text-color: #000000;
   --border-vw: 1vw;
 }
 
@@ -17,10 +18,12 @@
   :root {
     --background: #ffffff;
     --foreground: #ffffff;
+    --text-color: #000000;
   }
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   overflow: hidden;

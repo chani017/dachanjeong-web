@@ -13,7 +13,10 @@ const sizeClasses = {
   small: "text-[4.5vw] leading-[1]",
 };
 
-const weightClasses: Record<"medium" | "semibold" | "bold" | "extrabold", string> = {
+const weightClasses: Record<
+  "medium" | "semibold" | "bold" | "extrabold",
+  string
+> = {
   medium: "font-medium",
   semibold: "font-semibold",
   bold: "font-bold",
@@ -26,12 +29,14 @@ export default function Text({
   weight = "bold",
   className = "",
 }: TextProps) {
-  const baseClasses = "text-[var(--text-border-color)] uppercase leading-[0.9]";
+  const baseClasses = "text-[var(--text-color)] uppercase leading-[0.9]";
   const sizeClass = sizeClasses[size];
   const weightClass = weightClasses[weight];
 
   return (
-    <span className={`block ${baseClasses} ${sizeClass} ${weightClass} ${className}`}>
+    <span
+      className={`block ${baseClasses} ${sizeClass} ${weightClass} ${className}`}
+    >
       {children}
     </span>
   );
